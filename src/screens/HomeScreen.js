@@ -35,6 +35,7 @@ const css = StyleSheet.create({
     marginVertical: 15,
     borderRadius: 5,
     padding: 20,
+    color: "ash",
   },
   text: {
     fontSize: 32,
