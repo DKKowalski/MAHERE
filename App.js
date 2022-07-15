@@ -1,5 +1,6 @@
 import { createAppContainer } from "react-navigation";
 import { createStackNavigator } from "react-navigation-stack";
+import { MathProvider } from "./src/context/MathContext";
 import CameraScreen from "./src/screens/CameraScreen";
 import UploadScreen from "./src/screens/UploadScreen";
 import HomeScreen from "./src/screens/HomeScreen";
@@ -15,4 +16,11 @@ const navigator = createStackNavigator(
   { initialRouteName: "Home", defaultNavigationOptions: { title: "MAHERE" } }
 );
 
-export default createAppContainer(navigator);
+const App = createAppContainer(navigator);
+export default () => {
+  return (
+    <MathProvider>
+      <App />
+    </MathProvider>
+  );
+};

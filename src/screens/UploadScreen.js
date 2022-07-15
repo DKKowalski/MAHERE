@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
+import MathContext from "../context/MathContext";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import ModalScreen from "../../components/ModalScreen";
 
 const axios = require("axios").create({
   baseURL: "https://api.mathpix.com/v3/",
@@ -13,25 +13,26 @@ const axios = require("axios").create({
   },
 });
 
-const UploadScreen = () => {
-  const [fileResponse, setFileResponse] = useState(null);
-  const [data, setData] = useState([]);
+const UploadScreen = ({ navigation }) => {
+  const { addFile } = useContext(MathContext);
+  const [image, setImage] = useState(null);
 
   const searchImage = async () => {
     axios
-      .post("tet", {
-        src: "https://mathpix-ocr-examples.s3.amazonaws.com/cases_hw.jpg",
-        formats: ["text", "html", "json"],
+      .post("text", {
+        src: `data:image/png;base64,${image}`,
+        formats: ["data"],
         data_options: {
           include_asciimath: true,
           include_latex: true,
         },
       })
-      .then((response) => console.log(response.data));
+      .then((response) => addFile(response.data));
   };
 
-  const handleDocSelection = async () => {
-    let response = await ImagePicker.launchImageLibraryAsync({
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
       aspect: [4, 3],
@@ -39,34 +40,37 @@ const UploadScreen = () => {
       base64: true,
     });
 
-    if (!response.cancelled) {
-      setFileResponse(response);
+    if (!result.cancelled) {
+      setImage(result.base64);
     }
   };
-
-  useEffect(() => {
-    searchImage();
-  }, []);
 
   return (
     <View style={css.container}>
       <View style={{ marginTop: 250 }}>
-        {fileResponse && (
+        {image && (
           <Image
-            source={{ uri: `data:image/png;base64,${fileResponse.base64}` }}
+            source={{ uri: `data:image/png;base64,${image}` }}
             style={{ width: 200, height: 200 }}
-            alt="image"
           />
         )}
       </View>
       <View>
-        <TouchableOpacity onPress={handleDocSelection}>
+        <TouchableOpacity onPress={pickImage}>
           <Text style={{ fontSize: 40, fontWeight: "bold" }}>
             Select <AntDesign name="addfile" size={30} color="black" />
           </Text>
         </TouchableOpacity>
       </View>
-      <ModalScreen />
+      <TouchableOpacity
+        style={css.button}
+        onPress={() => {
+          searchImage();
+          navigation.navigate("Result");
+        }}
+      >
+        <Text style={css.text}>Show Answer</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -87,10 +91,16 @@ const css = StyleSheet.create({
     borderRadius: 5,
     padding: 20,
     color: "ash",
-    alignSelf: "flex-end",
+    alignSelf: "center",
   },
   text: {
     fontSize: 32,
     fontWeight: "bold",
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
   },
 });
